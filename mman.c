@@ -89,7 +89,14 @@ void* mmap(void *addr, size_t len, int prot, int flags, int fildes, off_t off)
         return MAP_FAILED;
     }
 
-    fm = CreateFileMapping(h, NULL, protect, 0, len, NULL);
+    const off_t maxSize = off + (off_t)len;
+    
+    const DWORD dwMaxSizeLow = (sizeof(off_t) <= sizeof(DWORD)) ? 
+                    (DWORD)maxSize : (DWORD)(maxSize & 0xFFFFFFFFL);
+    const DWORD dwMaxSizeHigh = (sizeof(off_t) <= sizeof(DWORD)) ?
+                    (DWORD)0 : (DWORD)((maxSize >> 32) & 0xFFFFFFFFL);
+    
+    fm = CreateFileMapping(h, NULL, protect, dwMaxSizeHigh, dwMaxSizeLow, NULL);
 
     if (fm == NULL)
     {
