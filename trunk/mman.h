@@ -6,8 +6,14 @@
 #ifndef _SYS_MMAN_H_
 #define _SYS_MMAN_H_
 
+#ifndef _WIN32_WINNT		// Allow use of features specific to Windows XP or later.                   
+#define _WIN32_WINNT 0x0501	// Change this to the appropriate value to target other versions of Windows.
+#endif						
+
 /* All the headers include this file. */
+#ifndef _MSC_VER
 #include <_mingw.h>
+#endif
 
 #include <sys/types.h>
 
