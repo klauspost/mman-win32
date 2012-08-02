@@ -61,12 +61,28 @@ void* mmap(void *addr, size_t len, int prot, int flags, int fildes, off_t off)
     
     void * map = MAP_FAILED;
     
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable: 4293)
+#endif
+
     const DWORD dwFileOffsetLow = (sizeof(off_t) <= sizeof(DWORD)) ? 
                     (DWORD)off : (DWORD)(off & 0xFFFFFFFFL);
     const DWORD dwFileOffsetHigh = (sizeof(off_t) <= sizeof(DWORD)) ?
                     (DWORD)0 : (DWORD)((off >> 32) & 0xFFFFFFFFL);
     const DWORD protect = __map_mmap_prot_page(prot);
     const DWORD desiredAccess = __map_mmap_prot_file(prot);
+
+    const off_t maxSize = off + (off_t)len;
+
+    const DWORD dwMaxSizeLow = (sizeof(off_t) <= sizeof(DWORD)) ? 
+                    (DWORD)maxSize : (DWORD)(maxSize & 0xFFFFFFFFL);
+    const DWORD dwMaxSizeHigh = (sizeof(off_t) <= sizeof(DWORD)) ?
+                    (DWORD)0 : (DWORD)((maxSize >> 32) & 0xFFFFFFFFL);
+
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
 
     errno = 0;
     
@@ -89,13 +105,6 @@ void* mmap(void *addr, size_t len, int prot, int flags, int fildes, off_t off)
         return MAP_FAILED;
     }
 
-    const off_t maxSize = off + (off_t)len;
-    
-    const DWORD dwMaxSizeLow = (sizeof(off_t) <= sizeof(DWORD)) ? 
-                    (DWORD)maxSize : (DWORD)(maxSize & 0xFFFFFFFFL);
-    const DWORD dwMaxSizeHigh = (sizeof(off_t) <= sizeof(DWORD)) ?
-                    (DWORD)0 : (DWORD)((maxSize >> 32) & 0xFFFFFFFFL);
-    
     fm = CreateFileMapping(h, NULL, protect, dwMaxSizeHigh, dwMaxSizeLow, NULL);
 
     if (fm == NULL)
